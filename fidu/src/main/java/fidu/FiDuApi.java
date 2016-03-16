@@ -4,8 +4,6 @@ import android.support.annotation.NonNull;
 
 import com.squareup.okhttp.Call;
 
-import java.io.File;
-
 /**
  * 文件上传/下载接口定义
  * <p/>
@@ -32,7 +30,7 @@ public interface FiDuApi {
      */
     Call download(@NonNull String url, @NonNull String file, @NonNull FiDuCallback callback);
 
-    Call downloadByRange(@NonNull String url, @NonNull File file, @NonNull FiDuCallback callback);
+    Call downloadByRange(@NonNull String url, @NonNull String file, @NonNull FiDuCallback callback);
 
     Call resumeDownloadByRange(@NonNull String url, @NonNull String file, @NonNull FiDuCallback
             callback);

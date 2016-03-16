@@ -12,10 +12,17 @@
     tools:context=".MainActivity">
 
     <ProgressBar
-        android:id="@+id/progress1"
+        android:id="@+id/progress"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/upload0"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="上传"/>
+
 
     <Button
         android:id="@+id/download1"
@@ -23,11 +30,6 @@
         android:layout_height="wrap_content"
         android:text="整个下载"/>
 
-    <ProgressBar
-        android:id="@+id/progress2"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/download2"
@@ -35,23 +37,12 @@
         android:layout_height="wrap_content"
         android:text="Range下载"/>
 
-    <ProgressBar
-        android:id="@+id/progress3"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
     <Button
         android:id="@+id/download3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Range重试"/>
 
-    <ProgressBar
-        android:id="@+id/progress4"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/download4"

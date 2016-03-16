@@ -29,7 +29,7 @@ class ProgressRequestBody {
      * Returns a new request body that transmits the content of {@code file}.
      */
     public static RequestBody create(@NonNull final MediaType contentType, @NonNull final File
-            file, @NonNull final FiDuCallback callback) {
+            file, @NonNull final ResponseDelivery mDelivery, @NonNull final FiDuCallback callback) {
         return new RequestBody() {
             @Override
             public MediaType contentType() {
@@ -52,7 +52,8 @@ class ProgressRequestBody {
                         long segmentSize = Math.min(contentLength - totalBytesRead, SIZE);
                         sink.write(source, segmentSize);
                         totalBytesRead += segmentSize;
-                        callback.onProgress((int) (totalBytesRead * 100 / contentLength));
+                        mDelivery.postProgress((int) (totalBytesRead * 100 / contentLength),
+                                callback);
                     }
                 } finally {
                     Util.closeQuietly(source);

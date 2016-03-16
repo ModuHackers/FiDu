@@ -1,5 +1,7 @@
 package fidu;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 
 import com.squareup.okhttp.Call;
@@ -22,6 +24,8 @@ import java.io.InputStream;
 public class FiDu implements FiDuApi {
     private static final String TAG = "FiDu";
     private static OkHttpClient mHttpClient = new OkHttpClient();
+    private static ResponseDelivery mDelivery = new ExecutorDelivery(new Handler(Looper
+            .getMainLooper()));
 
     public static FiDu getInstance() {
         return InstanceHolder.mInstance;
@@ -44,9 +48,9 @@ public class FiDu implements FiDuApi {
                        @NonNull final FiDuCallback callback) {
         File localFile = new File(file);
 
-        Request request = new Request.Builder()
+        final Request request = new Request.Builder()
                 .url(url)
-                .post(ProgressRequestBody.create(MediaType.parse(contentType), localFile, callback))
+                .post(ProgressRequestBody.create(MediaType.parse(contentType), localFile, mDelivery, callback))
                 .build();
         final Call call = mHttpClient.newCall(request);
         FiDuLog.d(TAG, "Call ready");
@@ -54,13 +58,13 @@ public class FiDu implements FiDuApi {
             @Override
             public void onFailure(Request request, IOException e) {
                 FiDuLog.d(TAG, "onFailure");
-                callback.onFailure(request, e);
+                mDelivery.postFailure(call, request, e, callback);
             }
 
             @Override
             public void onResponse(Response response) throws IOException {
                 FiDuLog.d(TAG, "onResponse");
-                callback.onResponse(response);
+                mDelivery.postResponse(call, response, callback);
             }
         });
 
@@ -79,7 +83,7 @@ public class FiDu implements FiDuApi {
             callback) {
         final File localFile = new File(file);
         localFile.getParentFile().mkdirs();
-        Call call;
+        final Call call;
         final Request request = new Request.Builder()
                 .url(url)
                 .build();
@@ -89,7 +93,7 @@ public class FiDu implements FiDuApi {
             @Override
             public void onFailure(Request request, IOException e) {
                 FiDuLog.d(TAG, "onFailure");
-                callback.onFailure(request, e);
+                mDelivery.postFailure(call, request, e, callback);
             }
 
             @Override
@@ -109,14 +113,14 @@ public class FiDu implements FiDuApi {
                         while ((len = in.read(buf)) != -1) {
                             fos.write(buf, 0, len);
                             got += len;
-                            callback.onProgress((int) (got * 100 / total));
+                            mDelivery.postProgress((int) (got * 100 / total), callback);
                         }
-                        callback.onProgress(100);
+                        mDelivery.postProgress(100, callback);
                         fos.flush();
-                        callback.onResponse(response);
+                        mDelivery.postResponse(call, response, callback);
                     } catch (IOException e) {
                         FiDuLog.d(TAG, e.toString());
-                        callback.onFailure(request, e);
+                        mDelivery.postFailure(call, request, e, callback);
                     } finally {
                         try {
                             if (in != null) in.close();
@@ -133,9 +137,106 @@ public class FiDu implements FiDuApi {
     }
 
     @Override
-    public Call downloadByRange(@NonNull String url, @NonNull File file,
-                                @NonNull FiDuCallback callback) {
-        return null;
+    public Call downloadByRange(@NonNull final String url, @NonNull final String file,
+                                @NonNull final FiDuCallback callback) {
+        final File localFile = new File(file);
+        localFile.getParentFile().mkdirs();
+        // TODO
+        localFile.delete();
+        try {
+            localFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        final Call headCall;
+        Request request = new Request.Builder()
+                .url(url)
+                .method("HEAD", null) // TODO HEAD方法不读取body
+                .build();
+
+        headCall = mHttpClient.newCall(request);
+        headCall.enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                mDelivery.postFailure(headCall, request, e, callback);
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    long bodyLength = Long.parseLong(response.header("Content-Length"));
+                    FiDuLog.d(TAG, "bodyLength: " + bodyLength);
+                    // TODO 分片
+                    downloadRange(url, 0, 0, bodyLength - 1, file, callback);
+                } else {
+                    mDelivery.postResponse(headCall, response, callback);
+                }
+            }
+        });
+
+        return headCall;
+    }
+
+    public Call downloadRange(@NonNull final String url, int segmentNum, long start, long
+            end, @NonNull final String file, @NonNull final FiDuCallback callback) {
+        final File segmentFile = new File(file + "_" + segmentNum);
+        segmentFile.getParentFile().mkdirs();
+        // TODO
+        segmentFile.delete();
+        try {
+            segmentFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        segmentFile.getParentFile().mkdirs();
+        final Call call;
+        final Request request = new Request.Builder()
+                .url(url)
+                .header("Range", "bytes=" + start + "-" + end)
+                .build();
+        call = mHttpClient.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                mDelivery.postFailure(call, request, e, callback);
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    InputStream in = null;
+                    FileOutputStream fos = null;
+                    try {
+                        in = response.body().byteStream();
+                        fos = new FileOutputStream(segmentFile);
+                        long total = response.body().contentLength();
+                        long got = 0;
+                        int len;
+                        byte[] buf = new byte[2048];
+
+                        while ((len = in.read(buf)) != -1) {
+                            fos.write(buf, 0, len);
+                            got += len;
+                            mDelivery.postProgress((int) (got * 100 / total), callback);
+                        }
+                        mDelivery.postProgress(100, callback);
+                        fos.flush();
+                        mDelivery.postResponse(call, response, callback);
+                    } catch (IOException e) {
+                        mDelivery.postFailure(call, request, e, callback);
+                    } finally {
+                        try {
+                            if (in != null) in.close();
+                            if (fos != null) fos.close();
+                        } catch (IOException e) {
+                        }
+                    }
+                }
+            }
+        });
+
+        return call;
     }
 
     @Override
