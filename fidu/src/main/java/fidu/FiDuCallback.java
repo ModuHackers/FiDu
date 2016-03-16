@@ -3,6 +3,8 @@ package fidu;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
+import java.io.IOException;
+
 /**
  * 文件上传/下载结果回调
  * <p/>
@@ -12,7 +14,7 @@ public interface FiDuCallback {
     /**
      * 成功
      */
-    void onResponse(Response response);
+    void onResponse(Response response) throws IOException;
 
     /**
      * 失败

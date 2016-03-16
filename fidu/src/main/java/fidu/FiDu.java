@@ -21,8 +21,15 @@ import java.io.InputStream;
  */
 public class FiDu implements FiDuApi {
     private static final String TAG = "FiDu";
-
     private static OkHttpClient mHttpClient = new OkHttpClient();
+
+    public static FiDu getInstance() {
+        return InstanceHolder.mInstance;
+    }
+
+    private static class InstanceHolder {
+        static final FiDu mInstance = new FiDu();
+    }
 
     /**
      * 上传文件
