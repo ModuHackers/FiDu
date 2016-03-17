@@ -1,5 +1,6 @@
 package fidu;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -16,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import db.FiDuDbManager;
+
 /**
  * 文件上传/下载接口实现,基于OkHttp
  * <p/>
@@ -26,6 +29,13 @@ public class FiDu implements FiDuApi {
     private static OkHttpClient mHttpClient = new OkHttpClient();
     private static ResponseDelivery mDelivery = new ExecutorDelivery(new Handler(Looper
             .getMainLooper()));
+
+    private static final int SEGMENT_SIZE = 1024 * 1024; // 下载分片大小,1M
+
+    public static void init(Context context) {
+        FiDuDbManager.init(context.getApplicationContext());
+    }
+
 
     public static FiDu getInstance() {
         return InstanceHolder.mInstance;
@@ -50,7 +60,8 @@ public class FiDu implements FiDuApi {
 
         final Request request = new Request.Builder()
                 .url(url)
-                .post(ProgressRequestBody.create(MediaType.parse(contentType), localFile, mDelivery, callback))
+                .post(ProgressRequestBody.create(MediaType.parse(contentType), localFile,
+                        mDelivery, callback))
                 .build();
         final Call call = mHttpClient.newCall(request);
         FiDuLog.d(TAG, "Call ready");
@@ -115,8 +126,8 @@ public class FiDu implements FiDuApi {
                             got += len;
                             mDelivery.postProgress((int) (got * 100 / total), callback);
                         }
-                        mDelivery.postProgress(100, callback);
                         fos.flush();
+                        mDelivery.postProgress(100, callback);
                         mDelivery.postResponse(call, response, callback);
                     } catch (IOException e) {
                         FiDuLog.d(TAG, e.toString());
@@ -142,12 +153,12 @@ public class FiDu implements FiDuApi {
         final File localFile = new File(file);
         localFile.getParentFile().mkdirs();
         // TODO
-        localFile.delete();
-        try {
-            localFile.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        localFile.delete();
+//        try {
+//            localFile.createNewFile();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         final Call headCall;
         Request request = new Request.Builder()
@@ -167,8 +178,21 @@ public class FiDu implements FiDuApi {
                 if (response.isSuccessful()) {
                     long bodyLength = Long.parseLong(response.header("Content-Length"));
                     FiDuLog.d(TAG, "bodyLength: " + bodyLength);
-                    // TODO 分片
-                    downloadRange(url, 0, 0, bodyLength - 1, file, callback);
+
+                    int totalSegments = (int) (bodyLength / SEGMENT_SIZE + (bodyLength %
+                            SEGMENT_SIZE == 0 ? 0 : 1));
+
+                    FiDuDbManager.startSegments(file, totalSegments);
+
+                    long start = 0;
+
+                    for (int seg = 0; seg < totalSegments; seg++) {
+                        long segSize = Math.min(SEGMENT_SIZE, bodyLength - start);
+                        // TODO 使用父请求callback不合适
+                        downloadRange(url, seg, start, start + segSize - 1, file, callback);
+                        start += segSize;
+                    }
+
                 } else {
                     mDelivery.postResponse(headCall, response, callback);
                 }
@@ -178,11 +202,10 @@ public class FiDu implements FiDuApi {
         return headCall;
     }
 
-    public Call downloadRange(@NonNull final String url, int segmentNum, long start, long
+    public Call downloadRange(@NonNull final String url, final int segmentNum, long start, long
             end, @NonNull final String file, @NonNull final FiDuCallback callback) {
         final File segmentFile = new File(file + "_" + segmentNum);
         segmentFile.getParentFile().mkdirs();
-        // TODO
         segmentFile.delete();
         try {
             segmentFile.createNewFile();
@@ -220,8 +243,9 @@ public class FiDu implements FiDuApi {
                             got += len;
                             mDelivery.postProgress((int) (got * 100 / total), callback);
                         }
-                        mDelivery.postProgress(100, callback);
                         fos.flush();
+                        FiDuDbManager.completeSegment(file, segmentNum);
+                        mDelivery.postProgress(100, callback);
                         mDelivery.postResponse(call, response, callback);
                     } catch (IOException e) {
                         mDelivery.postFailure(call, request, e, callback);
@@ -242,11 +266,12 @@ public class FiDu implements FiDuApi {
     @Override
     public Call resumeDownloadByRange(@NonNull String url, @NonNull String file,
                                       @NonNull FiDuCallback callback) {
+        // TODO
         return null;
     }
 
     @Override
     public void cancelDownloadByRange(@NonNull String localFile) {
-
+        // TODO
     }
 }

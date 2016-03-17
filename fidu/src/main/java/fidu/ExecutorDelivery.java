@@ -17,7 +17,6 @@
 package fidu;
 
 import android.os.Handler;
-import android.os.Looper;
 
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Request;
@@ -27,7 +26,7 @@ import java.io.IOException;
 import java.util.concurrent.Executor;
 
 /**
- * Delivers responses and errors.
+ * Delivers responses and errors. Modified from Volley.
  */
 public class ExecutorDelivery implements ResponseDelivery {
     /**
@@ -45,29 +44,18 @@ public class ExecutorDelivery implements ResponseDelivery {
         mResponsePoster = new Executor() {
             @Override
             public void execute(Runnable command) {
-                android.util.Log.d("execute", Thread.currentThread().toString());
-                android.util.Log.d("execute", "" + (Looper.myLooper() == Looper.getMainLooper()));
+//                FiDuLog.d("execute", Thread.currentThread().toString());
+//                FiDuLog.d("execute", "" + (Looper.myLooper() == Looper.getMainLooper()));
 
                 handler.post(command);
             }
         };
     }
 
-    /**
-     * Creates a new response delivery interface, mockable version
-     * for testing.
-     *
-     * @param executor For running delivery tasks
-     */
-    public ExecutorDelivery(Executor executor) {
-        mResponsePoster = executor;
-    }
-
     @Override
     public void postResponse(Call call, Response response, FiDuCallback callback) {
         mResponsePoster.execute(new ResponseDeliveryRunnable(null, call, response, null, callback));
     }
-
 
     @Override
     public void postFailure(Call call, Request request, IOException e, FiDuCallback callback) {

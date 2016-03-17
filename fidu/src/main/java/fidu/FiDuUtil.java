@@ -11,6 +11,7 @@ import static fidu.FiDuConstant.CONTENT_TYPE_STREAM;
  * Created by fengshzh on 16/3/16.
  */
 public final class FiDuUtil {
+
     /**
      * 根据文件名猜测MIME
      *
@@ -31,4 +32,6 @@ public final class FiDuUtil {
         }
         return type;
     }
+
+
 }

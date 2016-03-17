@@ -23,8 +23,9 @@ import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 
-import fidu.FiDuCallback;
-
+/**
+ * Modified from Volley.
+ */
 public interface ResponseDelivery {
     /**
      * Parses a response from the network or cache and delivers it.

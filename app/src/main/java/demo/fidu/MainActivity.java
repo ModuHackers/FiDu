@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     String serverFileUrl = "http://sethfeng.github.io/assets/svn-book.pdf";
-    String localFile = "/sdcard/svn-book/pdf";
+    String localFile = "/sdcard/svn-book.pdf";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
                                     if (e != null) {
                                         e.printStackTrace();
                                     }
-
                                 }
 
                                 @Override
