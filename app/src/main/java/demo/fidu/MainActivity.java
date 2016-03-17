@@ -69,13 +69,15 @@ public class MainActivity extends AppCompatActivity {
                     FiDu.getInstance().download(serverFileUrl, localFile, new
                             FiDuCallback() {
                                 @Override
-                                public void onResponse(Response response)  {
-                                    Toast.makeText(MainActivity.this, "onResponse", Toast.LENGTH_SHORT).show();
+                                public void onResponse(Response response) {
+                                    Toast.makeText(MainActivity.this, "onResponse", Toast
+                                            .LENGTH_SHORT).show();
                                 }
 
                                 @Override
                                 public void onFailure(Request request, Exception e) {
-                                    Toast.makeText(MainActivity.this, "onFailure", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, "onFailure", Toast
+                                            .LENGTH_SHORT).show();
                                     if (e != null) {
                                         e.printStackTrace();
                                     }
@@ -120,26 +122,55 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
             });
-
-
         }
 
-        // Range下载重试
+        // Range下载暂停
         Button download3 = (Button) findViewById(R.id.download3);
         if (download3 != null) {
             download3.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    FiDu.getInstance().pauseDownloadBySegments(serverFileUrl);
                 }
             });
         }
 
-        // Range下载取消
+        // Range下载继续
         Button download4 = (Button) findViewById(R.id.download4);
         if (download4 != null) {
             download4.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    FiDu.getInstance().resumeDownloadBySegments(serverFileUrl, new FiDuCallback() {
+                        @Override
+                        public void onResponse(Response response) {
+                            Toast.makeText(MainActivity.this, "onResponse", Toast
+                                    .LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onFailure(Request request, Exception e) {
+                            Toast.makeText(MainActivity.this, "onFailure", Toast.LENGTH_SHORT)
+                                    .show();
+                            e.printStackTrace();
+                        }
+
+                        @Override
+                        public void onProgress(int progress) {
+                            mProgressBar.setProgress(progress);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Range下载取消
+        Button download5 = (Button) findViewById(R.id.download5);
+        if (download5 != null) {
+            download5.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    FiDu.getInstance().cancelDownloadBySegments(serverFileUrl);
                 }
             });
         }

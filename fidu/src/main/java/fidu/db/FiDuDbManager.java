@@ -25,16 +25,19 @@ import static fidu.db.SegmentDownload.SegmentEntry.COLUMN_END;
 public class FiDuDbManager {
     private static SegmentDownloadDbHelper mDbHelper;
 
+    private static final int MAIN_FILE_SEGMENT_NUM = -1;
+
     public static void init(Context context) {
         mDbHelper = new SegmentDownloadDbHelper(context);
     }
 
-    public static void startSegments(String file, String url, Segment[] segments) {
+    public static void startSegments(String url, String file, Segment[] segments) {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_FILE, file);
         values.put(COLUMN_URL, url);
         values.put(COLUMN_TOTAL_SEGMENTS, segments.length);
+        values.put(COLUMN_SEGMENT_NUM, MAIN_FILE_SEGMENT_NUM);
         db.insert(TABLE_NAME, null, values);
 
         for (int i = 0; i < segments.length; i++) {
@@ -52,13 +55,13 @@ public class FiDuDbManager {
     }
 
     public static void completeSegment(Segment segment) {
-        String file = segment.file;
+        String url = segment.url;
         int segmentNum = segment.segmentNum;
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_COMPLETE, 1);
-        String selection = COLUMN_FILE + " is ? and " + COLUMN_SEGMENT_NUM + "=?";
-        String[] selectionArgs = {file, String.valueOf(segmentNum)};
+        String selection = COLUMN_URL + " is ? and " + COLUMN_SEGMENT_NUM + "=?";
+        String[] selectionArgs = {url, String.valueOf(segmentNum)};
         db.update(
                 TABLE_NAME,
                 values,
@@ -69,29 +72,29 @@ public class FiDuDbManager {
         segment.complete = 1;
 
         int totalSegments = segment.totalSegments;
-        int completed = querySegmentsCompleted(file);
+        int completed = querySegmentsCompleted(url);
         if (totalSegments == completed) {
-            FiDuUtil.assembleSegments(file, totalSegments);
-            cancelSegments(file);
+            FiDuUtil.assembleSegments(segment.file, totalSegments);
+            cancelSegments(url);
         }
     }
 
-    public static void cancelSegments(String file) {
+    public static void cancelSegments(String url) {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        String selection = COLUMN_FILE + " is ?";
-        String[] selectionArgs = {file};
+        String selection = COLUMN_URL + " is ?";
+        String[] selectionArgs = {url};
         db.delete(TABLE_NAME, selection, selectionArgs);
         db.close();
     }
 
-    public static int querySegments(String file) {
+    public static int querySegments(String url) {
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
         String[] projection = {COLUMN_TOTAL_SEGMENTS};
         Cursor cursor = db.query(
                 TABLE_NAME,
                 projection,
-                COLUMN_FILE + " is ? AND " + COLUMN_TOTAL_SEGMENTS + ">0",
-                new String[]{file},
+                COLUMN_URL + " is ? and " + COLUMN_TOTAL_SEGMENTS + ">0",
+                new String[]{url},
                 null,
                 null,
                 null
@@ -101,14 +104,14 @@ public class FiDuDbManager {
         return total;
     }
 
-    public static int querySegmentsCompleted(String file) {
+    public static int querySegmentsCompleted(String url) {
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
         String[] projection = {COLUMN_TOTAL_SEGMENTS};
         Cursor c = db.query(
                 TABLE_NAME,
                 projection,
-                COLUMN_FILE + " is ? AND " + COLUMN_COMPLETE + "=1",
-                new String[]{file},
+                COLUMN_URL + " is ? AND " + COLUMN_COMPLETE + "=1",
+                new String[]{url},
                 null,
                 null,
                 null
@@ -120,8 +123,8 @@ public class FiDuDbManager {
 
     public static Segment[] querySegmentsUnCompleted(String url) {
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
-        String[] projection = {COLUMN_FILE, COLUMN_URL, COLUMN_TOTAL_SEGMENTS, COLUMN_SEGMENT_NUM,
-                COLUMN_START, COLUMN_END};
+        String[] projection = {COLUMN_URL, COLUMN_FILE, COLUMN_TOTAL_SEGMENTS, COLUMN_SEGMENT_NUM,
+                COLUMN_START, COLUMN_END, COLUMN_COMPLETE};
         Cursor cursor = db.query(
                 TABLE_NAME,
                 projection,
@@ -135,15 +138,19 @@ public class FiDuDbManager {
         Segment[] segments = new Segment[unComplete];
         int seg = 0;
         while (cursor.moveToNext()) {
-            segments[seg].file = cursor.getString(cursor.getColumnIndexOrThrow
-                    (COLUMN_TOTAL_SEGMENTS));
+            segments[seg] = new Segment();
             segments[seg].url = cursor.getString(cursor.getColumnIndexOrThrow
+                    (COLUMN_URL));
+            segments[seg].file = cursor.getString(cursor.getColumnIndexOrThrow
+                    (COLUMN_FILE));
+            segments[seg].totalSegments = cursor.getInt(cursor.getColumnIndexOrThrow
                     (COLUMN_TOTAL_SEGMENTS));
             segments[seg].segmentNum = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (COLUMN_TOTAL_SEGMENTS));
+                    (COLUMN_SEGMENT_NUM));
             segments[seg].start = cursor.getLong(cursor.getColumnIndexOrThrow
-                    (COLUMN_TOTAL_SEGMENTS));
-            segments[seg].end = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_SEGMENTS));
+                    (COLUMN_START));
+            segments[seg].end = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_END));
+            segments[seg].complete = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_COMPLETE));
             seg++;
         }
         db.close();

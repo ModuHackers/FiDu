@@ -28,13 +28,15 @@ public interface FiDuApi {
      * @param file     本地存储位置
      * @param callback 回调
      */
-    Call download(@NonNull String url, @NonNull String file, @NonNull FiDuCallback callback);
+    void download(@NonNull String url, @NonNull String file, @NonNull FiDuCallback callback);
 
-    Call downloadBySegments(@NonNull String url, @NonNull String file, @NonNull FiDuCallback
+    void downloadBySegments(@NonNull String url, @NonNull String file, @NonNull FiDuCallback
             callback);
 
-    Call resumeDownloadBySegments(@NonNull String url, @NonNull FiDuCallback callback);
+    void pauseDownloadBySegments(@NonNull String url);
 
-    void cancelDownloadBySegments(@NonNull String localFile);
+    void resumeDownloadBySegments(@NonNull String url, @NonNull FiDuCallback callback);
+
+    void cancelDownloadBySegments(@NonNull String url);
 }
 

@@ -11,7 +11,6 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class SegmentDownloadDbHelper extends SQLiteOpenHelper {
 
-    // TODO 文件和segment是否要分表
 
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "fidu.db";

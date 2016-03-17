@@ -41,11 +41,17 @@
         android:id="@+id/download3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Range重试"/>
-
+        android:text="Range暂停"/>
 
     <Button
         android:id="@+id/download4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Range继续"/>
+
+
+    <Button
+        android:id="@+id/download5"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Range取消"/>
