@@ -30,13 +30,35 @@ public interface FiDuApi {
      */
     void download(@NonNull String url, @NonNull String file, @NonNull FiDuCallback callback);
 
+    /**
+     * 使用分片方式下载文件
+     *
+     * @param url      文件地址
+     * @param file     本地存储位置
+     * @param callback 回调
+     */
     void downloadBySegments(@NonNull String url, @NonNull String file, @NonNull FiDuCallback
             callback);
 
+    /**
+     * 暂停分片下载
+     *
+     * @param url 下载地址
+     */
     void pauseDownloadBySegments(@NonNull String url);
 
+    /**
+     * 重试分片下载
+     *
+     * @param url      下载地址
+     * @param callback 回调
+     */
     void resumeDownloadBySegments(@NonNull String url, @NonNull FiDuCallback callback);
 
+    /**
+     * 取消分片下载
+     * @param url 下载w
+     */
     void cancelDownloadBySegments(@NonNull String url);
 }
 
