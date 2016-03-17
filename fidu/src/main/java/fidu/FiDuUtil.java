@@ -1,5 +1,11 @@
 package fidu;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 import static fidu.FiDuConstant.CONTENT_TYPE_AVI;
 import static fidu.FiDuConstant.CONTENT_TYPE_JPEG;
 import static fidu.FiDuConstant.CONTENT_TYPE_PDF;
@@ -33,5 +39,34 @@ public final class FiDuUtil {
         return type;
     }
 
+    public static void assembleSegments(String file, int segments) {
+        File completeFile = new File(file);
+        completeFile.delete();
+        File firstSegment = new File(file + "_" + 0);
+        firstSegment.renameTo(completeFile);
+        try {
+            FileOutputStream out = new FileOutputStream(file, true);
+            for (int i = 1; i < segments; i++) {
+                File segmentFile = new File(file + "_" + i);
+                InputStream in = new FileInputStream(segmentFile);
+                byte[] buf = new byte[2048];
+                int len;
+                while ((len = in.read(buf)) != -1) {
+                    out.write(buf, 0, len);
+                }
+                out.flush();
+                segmentFile.delete();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void deleteSegments(String file, int segments) {
+        for (int i = 0; i < segments; i++) {
+            File segmentFile = new File(file + "_" + i);
+            segmentFile.delete();
+        }
+    }
 
 }

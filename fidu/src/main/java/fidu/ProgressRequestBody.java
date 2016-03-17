@@ -21,7 +21,7 @@ import okio.Source;
 class ProgressRequestBody {
 
     /**
-     * The size of all segments in bytes.
+     * The size of all totalSegments in bytes.
      */
     static final int SIZE = 2048;
 

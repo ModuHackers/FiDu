@@ -1,4 +1,4 @@
-package db;
+package fidu.db;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -14,7 +14,7 @@ public class SegmentDownloadDbHelper extends SQLiteOpenHelper {
     // TODO 文件和segment是否要分表
 
     public static final int DATABASE_VERSION = 1;
-    public static final String DATABASE_NAME = "download_segment.db";
+    public static final String DATABASE_NAME = "fidu.db";
 
     private static final String TEXT_TYPE = " TEXT";
     private static final String COMMA_SEP = ",";
@@ -22,8 +22,11 @@ public class SegmentDownloadDbHelper extends SQLiteOpenHelper {
             "CREATE TABLE " + SegmentDownload.SegmentEntry.TABLE_NAME + " (" +
                     SegmentDownload.SegmentEntry._ID + " INTEGER PRIMARY KEY," +
                     SegmentDownload.SegmentEntry.COLUMN_FILE + TEXT_TYPE + COMMA_SEP +
-                    SegmentDownload.SegmentEntry.COLUMN_SEGMENTS + TEXT_TYPE + COMMA_SEP +
-                    SegmentDownload.SegmentEntry.COLUMN_SEGMENT + TEXT_TYPE + COMMA_SEP +
+                    SegmentDownload.SegmentEntry.COLUMN_URL + TEXT_TYPE + COMMA_SEP +
+                    SegmentDownload.SegmentEntry.COLUMN_TOTAL_SEGMENTS + TEXT_TYPE + COMMA_SEP +
+                    SegmentDownload.SegmentEntry.COLUMN_SEGMENT_NUM + TEXT_TYPE + COMMA_SEP +
+                    SegmentDownload.SegmentEntry.COLUMN_START + TEXT_TYPE + COMMA_SEP +
+                    SegmentDownload.SegmentEntry.COLUMN_END + TEXT_TYPE + COMMA_SEP +
                     SegmentDownload.SegmentEntry.COLUMN_COMPLETE + TEXT_TYPE
                     + " )";
 

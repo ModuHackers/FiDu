@@ -98,16 +98,18 @@ public class MainActivity extends AppCompatActivity {
             download2.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    FiDu.getInstance().downloadByRange(serverFileUrl, localFile, new FiDuCallback
+                    FiDu.getInstance().downloadBySegments(serverFileUrl, localFile, new FiDuCallback
                             () {
                         @Override
-                        public void onResponse(Response response)  {
-                            Toast.makeText(MainActivity.this, "onResponse", Toast.LENGTH_SHORT).show();
+                        public void onResponse(Response response) {
+                            Toast.makeText(MainActivity.this, "onResponse", Toast.LENGTH_SHORT)
+                                    .show();
                         }
 
                         @Override
                         public void onFailure(Request request, Exception e) {
-                            Toast.makeText(MainActivity.this, "onFailure", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "onFailure", Toast.LENGTH_SHORT)
+                                    .show();
                             e.printStackTrace();
                         }
 

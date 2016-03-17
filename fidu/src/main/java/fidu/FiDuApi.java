@@ -30,11 +30,11 @@ public interface FiDuApi {
      */
     Call download(@NonNull String url, @NonNull String file, @NonNull FiDuCallback callback);
 
-    Call downloadByRange(@NonNull String url, @NonNull String file, @NonNull FiDuCallback callback);
-
-    Call resumeDownloadByRange(@NonNull String url, @NonNull String file, @NonNull FiDuCallback
+    Call downloadBySegments(@NonNull String url, @NonNull String file, @NonNull FiDuCallback
             callback);
 
-    void cancelDownloadByRange(@NonNull String localFile);
+    Call resumeDownloadBySegments(@NonNull String url, @NonNull FiDuCallback callback);
+
+    void cancelDownloadBySegments(@NonNull String localFile);
 }
 

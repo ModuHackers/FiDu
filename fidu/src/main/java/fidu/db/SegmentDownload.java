@@ -1,4 +1,4 @@
-package db;
+package fidu.db;
 
 import android.provider.BaseColumns;
 
@@ -14,8 +14,11 @@ public final class SegmentDownload {
     public static abstract class SegmentEntry implements BaseColumns {
         public static final String TABLE_NAME = "segment";
         public static final String COLUMN_FILE = "file";
-        public static final String COLUMN_SEGMENTS = "segments";
-        public static final String COLUMN_SEGMENT = "segment";
+        public static final String COLUMN_URL = "url";
+        public static final String COLUMN_TOTAL_SEGMENTS = "total_segments";
+        public static final String COLUMN_SEGMENT_NUM = "segment_num";
+        public static final String COLUMN_START = "start";
+        public static final String COLUMN_END = "end";
         public static final String COLUMN_COMPLETE = "complete";
     }
 }
