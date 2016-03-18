@@ -111,3 +111,6 @@ FiDu.getInstance().resumeDownloadBySegments(url, localPath, new FiDuCallback() {
 ```java
 FiDu.getInstance().cancelDownloadBySegments(url);
 ```
+
+## Tips
+- 回调在主线程执行，可执行UI操作。避免执行耗时操作。
